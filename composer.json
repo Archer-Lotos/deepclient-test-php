@@ -1,7 +1,7 @@
 {
-    "name": "deep_foundation/deepc_lient",
+    "name": "lotos2021/deepclient-test-php",
     "description": "Deep Client - a way to connect your favorite language with Deep",
-    "homepage": "https://github.com/deep-foundation/deepclient",
+    "homepage": "https://github.com/Lotos2021/deepclient-test-php",
     "type": "library",
     "authors": [
         {
