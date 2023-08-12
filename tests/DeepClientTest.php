@@ -1,10 +1,12 @@
 <?php
 
+use DeepFoundation\DeepClient\DeepClient;
+use DeepFoundation\DeepClient\DeepClientOptions;
 use GuzzleHttp\Client as GuzzleHttpClient;
 
 class DeepClientTest extends PHPUnit\Framework\TestCase
 {
-	function setUp(): void
+	function test()
 	{
 		$url = 'https://3006-deepfoundation-dev-8obbvtvqm0y.ws-eu102.gitpod.io/gql';
 		$headers = [

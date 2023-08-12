@@ -1,4 +1,5 @@
 <?php
+namespace DeepFoundation\DeepClient;
 
 class DeepClient
 {

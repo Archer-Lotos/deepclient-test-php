@@ -1,5 +1,5 @@
 <?php
-
+namespace DeepFoundation\DeepClient;
 class DeepClientOptions
 {
 	public function __construct($gql_client = null,
