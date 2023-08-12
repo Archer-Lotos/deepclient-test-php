@@ -1,8 +1,10 @@
 <?php
 
+namespace DeepFoundation\DeepClient;
 class Query
 {
-	public static function generate_query_data(array $options): callable {
+	public static function generate_query_data(array $options): callable
+	{
 		return function (string $alias, $index) use ($options) {
 			$defs = [];
 			$args = [];
@@ -38,7 +40,8 @@ class Query
 		};
 	}
 
-	public static function fields_inputs(string $table_name): array {
+	public static function fields_inputs(string $table_name): array
+	{
 		return [
 			'distinct_on' => '[' . $table_name . '_select_column!]',
 			'limit' => 'Int',
@@ -48,7 +51,8 @@ class Query
 		];
 	}
 
-	public static function generate_query(array $options): array {
+	public static function generate_query(array $options): array
+	{
 		$queries = $options["queries"] ?? [];
 		$operation = $options["operation"] ?? "query";
 		$name = $options["name"] ?? "QUERY";
