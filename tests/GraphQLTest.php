@@ -5,11 +5,24 @@ namespace Tests;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GuzzleHttp\Client as GuzzleClient;
 use GraphQL\Client;
+use GraphQL\Query;
 use InvalidArgumentException;
 
 class GraphQLTest extends \PHPUnit\Framework\TestCase
 {
-	function make_deep_client($token, $url): Client
+	private Client $deepClient;
+
+	function __construct(string $name)
+	{
+		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
+		$dotenv->load();
+		$url = $_ENV['GQL_URN'];
+		$token = $_ENV['BEARER_TOKEN'];
+		$this->deepClient = $this->makeDeepClient($token, $url, 0);
+		parent::__construct($name);
+	}
+
+	function makeDeepClient($token, $url): Client
 	{
 		if (!$token) {
 			throw new InvalidArgumentException("No token provided");
@@ -23,41 +36,23 @@ class GraphQLTest extends \PHPUnit\Framework\TestCase
 		);
 	}
 
-	function test()
+	function testPromiseLinks(): void
 	{
-		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
-		$dotenv->load();
+		$query = new Query('promise_links');
+		$query->setSelectionSet(['id']);
+		$response = $this->deepClient->runQuery($query);
 
-		$url = $_ENV['GQL_URN'];
-		$token = $_ENV['BEARER_TOKEN'];
-
-		$deepClient = $this->make_deep_client($token, $url, 0);
-
-		$builder = (new QueryBuilder('pokemon'))
-			->setVariable('name', 'String', true)
-			->setArgument('name', '$name')
-			->selectField('id')
-			->selectField('number')
-			->selectField('name')
-			->selectField(
-				(new QueryBuilder('evolutions'))
-					->selectField('id')
-					->selectField('name')
-					->selectField('number')
-					->selectField(
-						(new QueryBuilder('attacks'))
-							->selectField(
-								(new QueryBuilder('fast'))
-									->selectField('name')
-									->selectField('type')
-									->selectField('damage')
-							)
-					)
-			);
-
-		$response = $deepClient->runQuery($builder);
-
-		var_dump($response);
+		var_dump($response->getData());
 
 	}
+
+	/*
+	function testPromiseLinks(): void
+	{
+		$query = new Query('promise_links');
+		$query->setSelectionSet(['id']);
+		$response = $this->deepClient->runQuery($query);
+
+		var_dump($response->getData());
+	}*/
 }
