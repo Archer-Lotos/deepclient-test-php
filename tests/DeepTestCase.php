@@ -4,7 +4,7 @@ namespace Tests;
 
 use GraphQL\Client;
 
-class DeepClientTestCase extends \PHPUnit\Framework\TestCase
+class DeepTestCase extends \PHPUnit\Framework\TestCase
 {
 	public Client $graphQLClient;
 
@@ -12,8 +12,8 @@ class DeepClientTestCase extends \PHPUnit\Framework\TestCase
 	{
 		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
 		$dotenv->load();
-		$url = $_ENV['GQL_URN'];
-		$token = $_ENV['BEARER_TOKEN'];
+		$url = $_ENV['GQL_URN'] ?: 'http://localhost:3006/gql';
+		$token = $_ENV['BEARER_TOKEN'] ?: '';
 		$this->graphQLClient = $this->makeDeepClient($token, $url, 0);
 		parent::__construct($name);
 	}

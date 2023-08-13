@@ -8,7 +8,7 @@ use GraphQL\Client;
 use GraphQL\Query;
 use InvalidArgumentException;
 
-class GraphQLTest extends DeepClientTestCase
+class GraphQLTest extends DeepTestCase
 {
 	function makeDeepClient($token, $url): Client
 	{
