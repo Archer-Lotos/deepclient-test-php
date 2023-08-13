@@ -1,7 +1,42 @@
 <?php
 namespace DeepFoundation\DeepClient;
+
+use GraphQL\Client;
 class DeepClientOptions
 {
+	/**
+	 * @var Client|null
+	 */
+	public ?Client $gql_client;
+	/**
+	 * @var string
+	 */
+	public string $table;
+	/**
+	 * @var string
+	 */
+	public string $links_select_returning;
+	/**
+	 * @var string
+	 */
+	public string $values_select_returning;
+	/**
+	 * @var string
+	 */
+	public string $selectors_select_returning;
+	/**
+	 * @var string
+	 */
+	public string $files_select_returning;
+	/**
+	 * @var string
+	 */
+	public string $default_select_name;
+	/**
+	 * @var string
+	 */
+	public mixed $select_returning;
+
 	public function __construct($gql_client = null,
 								$table = 'links',
 								$links_select_returning = 'id type_id from_id to_id value',

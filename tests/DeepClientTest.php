@@ -16,6 +16,8 @@ class DeepClientTest extends DeepTestCase
 		$this->deepClient = new DeepClient($options=$this->deepClientOptions);
 	}
 
-
-
+	function testSelect()
+	{
+		var_dump($this->deepClient->select(1));
+	}
 }

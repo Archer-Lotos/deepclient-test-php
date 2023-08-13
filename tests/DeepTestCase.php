@@ -3,11 +3,26 @@
 namespace Tests;
 
 use GraphQL\Client;
+use GuzzleHttp\Client as GuzzleClient;
+use InvalidArgumentException;
 
 class DeepTestCase extends \PHPUnit\Framework\TestCase
 {
 	public Client $graphQLClient;
 
+	function makeDeepClient($token, $url): Client
+	{
+		if (!$token) {
+			throw new InvalidArgumentException("No token provided");
+		}
+		$httpClient = new GuzzleClient(['base_uri' => $url]);
+		return new Client(
+			$url,
+			['Authorization' => "Bearer $token"],
+			[],
+			$httpClient
+		);
+	}
 	function __construct(string $name)
 	{
 		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);

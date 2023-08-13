@@ -2,28 +2,10 @@
 
 namespace Tests;
 
-use GraphQL\QueryBuilder\QueryBuilder;
-use GuzzleHttp\Client as GuzzleClient;
-use GraphQL\Client;
 use GraphQL\Query;
-use InvalidArgumentException;
 
 class GraphQLTest extends DeepTestCase
 {
-	function makeDeepClient($token, $url): Client
-	{
-		if (!$token) {
-			throw new InvalidArgumentException("No token provided");
-		}
-		$httpClient = new GuzzleClient(['base_uri' => $url]);
-		return new Client(
-			$url,
-			['Authorization' => "Bearer $token"],
-			[],
-			$httpClient
-		);
-	}
-
 	function testPromiseLinks(): void
 	{
 		$query = new Query('promise_links');
