@@ -4,6 +4,7 @@ namespace Tests;
 
 use DeepFoundation\DeepClient\DeepClient;
 use DeepFoundation\DeepClient\DeepClientOptions;
+use Exception;
 
 class DeepClientTest extends DeepTestCase
 {
@@ -16,6 +17,9 @@ class DeepClientTest extends DeepTestCase
 		$this->deepClient = new DeepClient($options=$this->deepClientOptions);
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	function testSelect()
 	{
 		var_dump($this->deepClient->select(1));

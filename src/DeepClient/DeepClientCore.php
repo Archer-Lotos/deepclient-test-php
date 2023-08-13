@@ -4,7 +4,10 @@ namespace DeepFoundation\DeepClient;
 
 class DeepClientCore
 {
-	public static array $_ids = [
+	/**
+	 * @val array|array[]
+	 */
+	const _ids = [
 		"@deep-foundation/core" => [
 			"Type" => 1,
 			"Package" => 2,
@@ -191,7 +194,7 @@ class DeepClientCore
 		]
 	];
 
-	public static array $_serialize = [
+	const _serialize = [
 		"links" => [
 			"fields" => [
 				"id" => "number",

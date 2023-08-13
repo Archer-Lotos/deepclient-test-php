@@ -19,7 +19,7 @@ class Query
 				$resultVariables[$v . strval($index)] = $variable;
 			}
 
-			$result = [
+			return [
 				'tableName' => $options['tableName'],
 				'operation' => $options['operation'] ?? 'query',
 				'queryName' => $options['queryName'] ?? $options['tableName'],
@@ -35,8 +35,6 @@ class Query
 				'resultAlias' => $resultAlias,
 				'resultVariables' => $resultVariables,
 			];
-
-			return $result;
 		};
 	}
 
@@ -71,7 +69,7 @@ class Query
 		}, $called_queries));
 
 		$query_string = "{$operation} {$name} ($defs) {{$query_body}}";
-		$query = gql($query_string);
+		$query = self::gql($query_string);
 
 		$variables = [];
 		foreach ($called_queries as $action) {
@@ -85,5 +83,9 @@ class Query
 			"variables" => $variables,
 			"query_string" => $query_string,
 		];
+	}
+
+	public static function gql(string $query_string)
+	{
 	}
 }

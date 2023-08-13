@@ -9,6 +9,10 @@ class DeepClient extends DeepClientCore
 	 * @var DeepClientOptions|mixed
 	 */
 	public mixed $options;
+	/**
+	 * @var \GraphQL\Client|mixed|null
+	 */
+	public mixed $client;
 
 	public function __construct($options = null)
 	{
@@ -21,7 +25,7 @@ class DeepClient extends DeepClientCore
 		$this->client = $this->options->gql_client ?? null;
 	}
 
-	public static array $_boolExpFields = [
+	const _boolExpFields = [
 		"_and" => true,
 		"_not" => true,
 		"_or" => true,
@@ -29,11 +33,11 @@ class DeepClient extends DeepClientCore
 
 	public function path_to_where($start, ...$path): array
 	{
-		$pckg = is_string($start) ? ["type_id" => $this->_ids["@deep-foundation/core"]["Package"], "value" => $start] : ["id" => $start];
+		$pckg = is_string($start) ? ["type_id" => self::_ids["@deep-foundation/core"]["Package"], "value" => $start] : ["id" => $start];
 		$where = $pckg;
 		foreach ($path as $item) {
 			if (!is_bool($item)) {
-				$nextWhere = ["in" => ["type_id" => $this->_ids["@deep-foundation/core"]["Contain"], "value" => $item, "from" => $where]];
+				$nextWhere = ["in" => ["type_id" => self::_ids["@deep-foundation/core"]["Contain"], "value" => $item, "from" => $where]];
 				$where = $nextWhere;
 			}
 		}
@@ -72,7 +76,7 @@ class DeepClient extends DeepClientCore
 						} else {
 							$setted = $result[$key] = ['_eq' => $exp[$key]];
 						}
-					} elseif (!in_array($key, DeepClient::$_boolExpFields ) && is_array($exp[$key])) {
+					} elseif (!in_array($key, self::_boolExpFields ) && is_array($exp[$key])) {
 						$setted = $result[$key] = $this->serialize_where($this->path_to_where(...$exp[$key]));
 					}
 				} elseif ($env == 'value') {
@@ -132,9 +136,9 @@ class DeepClient extends DeepClientCore
 
 				if (!$setted) {
 					$_temp = (
-						in_array($key, DeepClient::$_boolExpFields) ? $this->serialize_where($exp[$key], $env) : (
-							(isset(DeepClient::$_serialize[$env]['relations'][$key])
-								? $this->serialize_where($exp[$key], DeepClient::$_serialize[$env]['relations'][$key]) : $exp[$key])
+						in_array($key, self::_boolExpFields) ? $this->serialize_where($exp[$key], $env) : (
+							(isset(self::_serialize[$env]['relations'][$key])
+								? $this->serialize_where($exp[$key], self::_serialize[$env]['relations'][$key]) : $exp[$key])
 						)
 					);
 					if ($key === '_and') {
@@ -153,7 +157,10 @@ class DeepClient extends DeepClientCore
 		}
 	}
 
-	public function select($exp, $options = [])
+	/**
+	 * @throws Exception
+	 */
+	public function select($exp, $options = []): array
 	{
 		if (!$exp) {
 			return [
@@ -174,11 +181,11 @@ class DeepClient extends DeepClientCore
 			$where = ["id" => ["_eq" => $exp]];
 		}
 
-		$table = $options["table"] ?? $this->table;
+		$table = $options["table"] ?? $this->options->table;
 		$returning = $options["returning"] ?? $this->default_returning($table);
 
 		$variables = $options["variables"] ?? [];
-		$name = $options["name"] ?? $this->default_select_name;
+		$name = $options["name"] ?? $this->options->default_select_name;
 
 		$generated_query = Query::generate_query([
 			"queries" => [
@@ -206,18 +213,21 @@ class DeepClient extends DeepClientCore
 	public function default_returning(string $table): string
 	{
 		if ($table === 'links') {
-			return $this->links_select_returning;
+			return $this->options->links_select_returning;
 		} elseif (in_array($table, ['strings', 'numbers', 'objects'])) {
-			return $this->values_select_returning;
+			return $this->options->values_select_returning;
 		} elseif ($table === 'selectors') {
-			return $this->selectors_select_returning;
+			return $this->options->selectors_select_returning;
 		} elseif ($table === 'files') {
-			return $this->files_select_returning;
+			return $this->options->files_select_returning;
 		} else {
 			return "id";
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public function id($start, ...$path) {
 		if (is_array($start)) {
 			$result = $this->select($start);
@@ -225,7 +235,7 @@ class DeepClient extends DeepClientCore
 			return $data[0]["id"] ?? null;
 		}
 
-		if (isset($this->_ids[$start]) && isset($this->_ids[$start][$path[0]])) {
+		if (isset($this->_ids[$start][$path[0]])) {
 			return $this->_ids[$start][$path[0]];
 		}
 
