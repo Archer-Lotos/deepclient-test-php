@@ -8,20 +8,8 @@ use GraphQL\Client;
 use GraphQL\Query;
 use InvalidArgumentException;
 
-class GraphQLTest extends \PHPUnit\Framework\TestCase
+class GraphQLTest extends DeepClientTestCase
 {
-	private Client $deepClient;
-
-	function __construct(string $name)
-	{
-		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
-		$dotenv->load();
-		$url = $_ENV['GQL_URN'];
-		$token = $_ENV['BEARER_TOKEN'];
-		$this->deepClient = $this->makeDeepClient($token, $url, 0);
-		parent::__construct($name);
-	}
-
 	function makeDeepClient($token, $url): Client
 	{
 		if (!$token) {
@@ -40,19 +28,19 @@ class GraphQLTest extends \PHPUnit\Framework\TestCase
 	{
 		$query = new Query('promise_links');
 		$query->setSelectionSet(['id']);
-		$response = $this->deepClient->runQuery($query);
+		$response = $this->graphQLClient->runQuery($query);
 
 		var_dump($response->getData());
 
 	}
 
-	/*
-	function testPromiseLinks(): void
+
+	function testBoolExp(): void
 	{
-		$query = new Query('promise_links');
+		$query = new Query('bool_exp');
 		$query->setSelectionSet(['id']);
-		$response = $this->deepClient->runQuery($query);
+		$response = $this->graphQLClient->runQuery($query);
 
 		var_dump($response->getData());
-	}*/
+	}
 }
