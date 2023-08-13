@@ -1,22 +1,22 @@
 <?php
 
+namespace Tests;
+
 use GraphQL\QueryBuilder\QueryBuilder;
 use GuzzleHttp\Client as GuzzleClient;
 use GraphQL\Client;
+use InvalidArgumentException;
 
-class GraphQLTest extends PHPUnit\Framework\TestCase
+class GraphQLTest extends \PHPUnit\Framework\TestCase
 {
-	function make_deep_client($token, $GQL_URN, $GQL_SSL): Client
+	function make_deep_client($token, $url): Client
 	{
 		if (!$token) {
 			throw new InvalidArgumentException("No token provided");
 		}
-
-		$url = ($GQL_SSL) ? "https://$GQL_URN" : "http://$GQL_URN";
 		$httpClient = new GuzzleClient(['base_uri' => $url]);
-
 		return new Client(
-			$GQL_URN,
+			$url,
 			['Authorization' => "Bearer $token"],
 			[],
 			$httpClient
@@ -25,8 +25,11 @@ class GraphQLTest extends PHPUnit\Framework\TestCase
 
 	function test()
 	{
-		$url = 'https://3006-deepfoundation-dev-8obbvtvqm0y.ws-eu102.gitpod.io/gql';
-		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibGluayJdLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJsaW5rIiwieC1oYXN1cmEtdXNlci1pZCI6Ijk3NCJ9LCJpYXQiOjE2OTAxOTg5NDN9.ChszX6XybPR2KEfNci7xEMoXwW4pwbIaVuagREkcf80';
+		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
+		$dotenv->load();
+
+		$url = $_ENV['GQL_URN'];
+		$token = $_ENV['BEARER_TOKEN'];
 
 		$deepClient = $this->make_deep_client($token, $url, 0);
 
@@ -54,13 +57,7 @@ class GraphQLTest extends PHPUnit\Framework\TestCase
 
 		$response = $deepClient->runQuery($builder);
 
-		if ($response->isOk()) {
-			$data = $response->getData();
-			var_dump($data);
-		} else {
-			$errors = $response->getErrors();
-			var_dump($errors);
-		}
+		var_dump($response);
 
 	}
 }

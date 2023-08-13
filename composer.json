@@ -12,7 +12,8 @@
     "require": {
         "php": "^8.1",
         "react/promise": "^2.10",
-        "gmostafa/php-graphql-client": "^1.13"
+        "gmostafa/php-graphql-client": "^1.13",
+        "vlucas/phpdotenv": "^5.5"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.1"
