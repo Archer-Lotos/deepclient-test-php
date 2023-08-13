@@ -159,67 +159,63 @@ class DeepClient extends DeepClientCore
 		}
 	}
 
+	public static function serializeQuery($exp, $env = 'links'): array
+	{
+		$limit = $exp['limit'] ?? null;
+		$order_by = $exp['order_by'] ?? null;
+		$offset = $exp['offset'] ?? null;
+		$distinct_on = $exp['distinct_on'] ?? null;
+		$where = $exp;
+		unset($where['limit'], $where['order_by'], $where['offset'], $where['distinct_on']);
+
+		$result = ['where' => is_array($exp) ? (is_array($exp['id']) ? ['id' => ['_in' => $exp]] : serializeWhere($where, $env)) : ['id' => ['_eq' => $exp]]];
+
+		if ($limit) $result['limit'] = $limit;
+		if ($order_by) $result['order_by'] = $order_by;
+		if ($offset) $result['offset'] = $offset;
+		if ($distinct_on) $result['distinct_on'] = $distinct_on;
+		return $result;
+	}
+
 	/**
 	 * @throws Exception
 	 */
-	public function select($exp, $options = []): array
-	{
+	public function select($exp, $options = null) {
 		if (!$exp) {
 			return [
-				"error" => [
-					"message" => "!exp"
-				],
-				"data" => null,
-				"loading" => false,
-				"networkStatus" => null
+				'error' => ['message' => '!exp'],
+				'data' => null,
+				'loading' => false,
+				'networkStatus' => null
 			];
 		}
 
-		if (is_array($exp)) {
-			$where = ["id" => ["_in" => $exp]];
-		} elseif (is_array($exp)) {
-			$where = $this->serialize_where($exp, $options["table"] ?? "links");
-		} else {
-			$where = ["id" => ["_eq" => $exp]];
+		$query = self::serializeQuery($exp, $options['table'] ?? 'links');
+		$table = $options['table'] ?? $this->options->table;
+		$returning = $options['returning'] ??
+			($table === 'links' ? $this->options->linksSelectReturning :
+				(in_array($table, ['strings', 'numbers', 'objects']) ? $this->options->valuesSelectReturning :
+					($table === 'selectors' ? $this->options->selectorsSelectReturning :
+						($table === 'files' ? $this->options->filesSelectReturning : 'id'))));
+		$variables = $options['variables'];
+		$name = $options['name'] ?? $this->options->defaultSelectName;
+
+		try {
+			$q = $this->apolloClient->query(DeepClientQuery::generateQuery([
+				'queries' => [
+					DeepClientQuery::generateQueryData([
+						'tableName' => $table,
+						'returning' => $returning,
+						'variables' => array_merge($variables, $query)
+					])
+				],
+				'name' => $name
+			]));
+
+			return array_merge($q, ['data' => $q['data']['q0']]);
+		} catch (Exception $e) {
+			throw new Exception("DeepClient Select Error: " . $e->getMessage());
 		}
-
-		$table = $options["table"] ?? $this->options->table;
-		$returning = $options["returning"] ?? $this->default_returning($table);
-
-		$variables = $options["variables"] ?? [];
-		$name = $options["name"] ?? $this->options->default_select_name;
-
-		$generated_query = DeepClientQuery::generate_query([
-			"queries" => [
-				DeepClientQuery::generate_query_data([
-					"tableName" => $table,
-					"returning" => $returning,
-					"variables" => [
-						"limit" => $where["limit"] ?? null,
-						...$variables,
-						"where" => $where,
-					]
-				]),
-			],
-			"name" => $name,
-		]);
-
-		//var_dump($generated_query);
-
-		//return $generated_query;
-
-		$queryData = new Query($table);
-		$queryData->setVariables($generated_query);
-		$q = $this->graphQLClient->runQuery($queryData);
-
-		var_dump($q);
-
-		return $q;
-
-		/*$data = $q->get("q0", []);
-		unset($q["q0"]);
-
-		return array_merge($q, ["data" => $data]);*/
 	}
 
 	public function default_returning(string $table): string

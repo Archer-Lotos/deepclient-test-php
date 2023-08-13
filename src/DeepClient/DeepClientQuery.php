@@ -89,44 +89,42 @@ class DeepClientQuery
 	{
 	}
 
-	function generateQuery(array $options): array {
+	public static function generateQuery($options) {
 		$queries = $options['queries'] ?? [];
 		$operation = $options['operation'] ?? 'query';
 		$name = $options['name'] ?? 'QUERY';
 		$alias = $options['alias'] ?? 'q';
 
-		// log('generateQuery', ['name' => $name, 'alias' => $alias, 'queries' => $queries]);
+		$calledQueries = array_map(function($m, $i) use ($alias){
+			return is_callable($m) ? $m($alias, $i) : $m;
+		}, $queries, array_keys($queries));
 
-		$calledQueries = array_map(function($m, $i) use ($alias) {
-			if (is_callable($m)) {
-				return $m($alias, $i);
-			}
-			return $m;
-		}, $queries);
-
-		$defs = implode(',', array_map(function($m) {
-			return implode(',', $m['defs']);
+		$defs = join(',', array_map(function($m){
+			return join(',', $m['defs']);
 		}, $calledQueries));
 
-		$subQueries = array_map(function($m) {
-			return "{$m['resultAlias']}: {$m['queryName']}(" . implode(',', $m['args']) . ") { {$m['resultReturning']} }";
-		}, $calledQueries);
+		$queryString = "${operation} ${name} (${defs}) { " . join('',
+				array_map(function($m) {
+					return "${m['resultAlias']}: ${m['queryName']}(${join(',', $m['args'])}) { ${m['resultReturning']} }";
+				}, $calledQueries)
+			) . " }";
 
-		$queryString = "$operation $name ($defs) { " . implode('', $subQueries) . " }";
+		$query = $queryString; //Replace this line with your own gql function in PHP
 		$variables = [];
+
 		foreach ($calledQueries as $action) {
-			foreach ($action['resultVariables'] as $v => $variable) {
-				$variables[$v] = $variable;
+			if (is_array($action['resultVariables'])) {
+				foreach ($action['resultVariables'] as $v => $variable) {
+					$variables[$v] = $variable;
+				}
 			}
 		}
 
 		$result = [
-			'query' => $queryString,
+			'query' => $query,
 			'variables' => $variables,
-			'queryString' => $queryString,
+			'queryString' => $queryString
 		];
-
-		// log('generateQueryResult', json_encode(['query' => $queryString, 'variables' => $variables], JSON_PRETTY_PRINT));
 
 		return $result;
 	}
@@ -140,29 +138,27 @@ class DeepClientQuery
 			'where' => "$tableName" . "_bool_exp!"
 		];
 	}
-	function generateQueryData(array $options): callable {
+	public static function generateQueryData($options) {
 		$tableName = $options['tableName'];
 		$operation = $options['operation'] ?? 'query';
 		$queryName = $options['queryName'] ?? $tableName;
 		$returning = $options['returning'] ?? 'id';
-		$variables = $options['variables'] ?? [];
-
-		// log('generateQuery', ['tableName' => $tableName, 'operation' => $operation, 'queryName' => $queryName, 'returning' => $returning, 'variables' => $variables]);
+		$variables = $options['variables'];
 
 		$fields = ['distinct_on', 'limit', 'offset', 'order_by', 'where'];
-		$fieldTypes = self::fieldsInputs($tableName); // Assuming you have a function fieldsInputs that returns an array.
+		$fieldTypes = self::fieldsInputs($tableName); //Need to implement fieldsInputs function
 
-		return function(string $alias, int $index) use ($tableName, $operation, $queryName, $returning, $variables, $fields, $fieldTypes): array {
-			// log('generateQueryBuilder', ['tableName' => $tableName, 'operation' => $operation, 'queryName' => $queryName, 'returning' => $returning, 'variables' => $variables, 'alias' => $alias, 'index' => $index]);
+		return function ($alias, $index) use ($tableName, $operation, $queryName, $returning, $variables, $fields, $fieldTypes) {
 			$defs = [];
 			$args = [];
 
-			foreach ($fields as $field) {
-				$defs[] = "\${$field}{$index}: {$fieldTypes[$field]}";
-				$args[] = "{$field}: \${$field}{$index}";
+			for ($f = 0; $f < count($fields); $f++) {
+				$field = $fields[$f];
+				array_push($defs, "$" . $field . $index . ": " . $fieldTypes[$field]);
+				array_push($args, $field . ": $" . $field . $index);
 			}
 
-			$resultAlias = $alias . (is_int($index) ? $index : '');
+			$resultAlias = $alias . (is_numeric($index) ? $index : '');
 			$resultVariables = [];
 
 			foreach ($variables as $v => $variable) {
@@ -186,7 +182,6 @@ class DeepClientQuery
 				'resultVariables' => $resultVariables,
 			];
 
-			// log('generateQueryResult', $result);
 			return $result;
 		};
 	}
