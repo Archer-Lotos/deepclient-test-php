@@ -1,7 +1,7 @@
 <?php
 
 namespace DeepFoundation\DeepClient;
-class Query
+class DeepClientQuery
 {
 	public static function generate_query_data(array $options): callable
 	{

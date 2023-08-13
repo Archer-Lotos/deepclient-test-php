@@ -2,6 +2,8 @@
 namespace DeepFoundation\DeepClient;
 
 use Exception;
+use GraphQL\Client;
+use GraphQL\Query;
 
 class DeepClient extends DeepClientCore
 {
@@ -10,9 +12,9 @@ class DeepClient extends DeepClientCore
 	 */
 	public mixed $options;
 	/**
-	 * @var \GraphQL\Client|mixed|null
+	 * @var Client|mixed|null
 	 */
-	public mixed $client;
+	public mixed $graphQLClient;
 
 	public function __construct($options = null)
 	{
@@ -22,7 +24,7 @@ class DeepClient extends DeepClientCore
 			$this->options = $options;
 		}
 
-		$this->client = $this->options->gql_client ?? null;
+		$this->graphQLClient = $this->options->gql_client ?? null;
 	}
 
 	const _boolExpFields = [
@@ -187,9 +189,9 @@ class DeepClient extends DeepClientCore
 		$variables = $options["variables"] ?? [];
 		$name = $options["name"] ?? $this->options->default_select_name;
 
-		$generated_query = Query::generate_query([
+		$generated_query = DeepClientQuery::generate_query([
 			"queries" => [
-				Query::generate_query_data([
+				DeepClientQuery::generate_query_data([
 					"tableName" => $table,
 					"returning" => $returning,
 					"variables" => [
@@ -202,12 +204,17 @@ class DeepClient extends DeepClientCore
 			"name" => $name,
 		]);
 
-		$q = $this->client->execute_async($generated_query["query"], ["variable_values" => $generated_query["variables"]]);
+		var_dump($generated_query);
+
+		return $generated_query;
+
+		/*$queryData = new Query($table);
+		$queryData->setArguments() setAttributes($returning);
 
 		$data = $q->get("q0", []);
 		unset($q["q0"]);
 
-		return array_merge($q, ["data" => $data]);
+		return array_merge($q, ["data" => $data]);*/
 	}
 
 	public function default_returning(string $table): string
