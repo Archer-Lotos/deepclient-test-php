@@ -3,6 +3,7 @@ namespace DeepFoundation\DeepClient;
 
 use Exception;
 use GraphQL\Client;
+use GraphQL\Exception\QueryError;
 use GraphQL\Query;
 
 class DeepClient extends DeepClientCore
@@ -218,11 +219,21 @@ class DeepClient extends DeepClientCore
 				'name' => $name
 			]);
 
-			var_dump($generated_query);
+			try {
+				$query = 'query MyQuery { links(limit: 1) { id }}';
+				$variables = [
+				];
 
-			$query = new Query('links');
-			$query->setSelectionSet($generated_query);
-			$q = $this->graphQLClient->runQuery($query);
+				/*$results = $this->graphQLClient->runRawQuery(
+					$generated_query['query'],
+					true,
+					$generated_query['variables']);*/
+				$results = $this->graphQLClient->runRawQuery($query, true, $variables);
+				var_dump($results->getData());
+			} catch (QueryError $exception) {
+				$responseErrors = $exception->getMessage();
+				var_dump($responseErrors);
+			}
 
 			return array_merge($q, ['data' => $q['data']['q0']]);
 		} catch (Exception $e) {
