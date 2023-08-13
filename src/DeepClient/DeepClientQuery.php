@@ -130,4 +130,64 @@ class DeepClientQuery
 
 		return $result;
 	}
+
+	public static function fieldsInputs($tableName): array {
+		return [
+			'distinct_on' => "[$tableName" . "_select_column!]",
+			'limit' => "Int",
+			'offset' => "Int",
+			'order_by' => "[$tableName" . "_order_by!]",
+			'where' => "$tableName" . "_bool_exp!"
+		];
+	}
+	function generateQueryData(array $options): callable {
+		$tableName = $options['tableName'];
+		$operation = $options['operation'] ?? 'query';
+		$queryName = $options['queryName'] ?? $tableName;
+		$returning = $options['returning'] ?? 'id';
+		$variables = $options['variables'] ?? [];
+
+		// log('generateQuery', ['tableName' => $tableName, 'operation' => $operation, 'queryName' => $queryName, 'returning' => $returning, 'variables' => $variables]);
+
+		$fields = ['distinct_on', 'limit', 'offset', 'order_by', 'where'];
+		$fieldTypes = self::fieldsInputs($tableName); // Assuming you have a function fieldsInputs that returns an array.
+
+		return function(string $alias, int $index) use ($tableName, $operation, $queryName, $returning, $variables, $fields, $fieldTypes): array {
+			// log('generateQueryBuilder', ['tableName' => $tableName, 'operation' => $operation, 'queryName' => $queryName, 'returning' => $returning, 'variables' => $variables, 'alias' => $alias, 'index' => $index]);
+			$defs = [];
+			$args = [];
+
+			foreach ($fields as $field) {
+				$defs[] = "\${$field}{$index}: {$fieldTypes[$field]}";
+				$args[] = "{$field}: \${$field}{$index}";
+			}
+
+			$resultAlias = $alias . (is_int($index) ? $index : '');
+			$resultVariables = [];
+
+			foreach ($variables as $v => $variable) {
+				$resultVariables[$v . $index] = $variable;
+			}
+
+			$result = [
+				'tableName' => $tableName,
+				'operation' => $operation,
+				'queryName' => $queryName,
+				'returning' => $returning,
+				'variables' => $variables,
+				'resultReturning' => $returning,
+				'fields' => $fields,
+				'fieldTypes' => $fieldTypes,
+				'index' => $index,
+				'defs' => $defs,
+				'args' => $args,
+				'alias' => $alias,
+				'resultAlias' => $resultAlias,
+				'resultVariables' => $resultVariables,
+			];
+
+			// log('generateQueryResult', $result);
+			return $result;
+		};
+	}
 }
