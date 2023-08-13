@@ -204,14 +204,19 @@ class DeepClient extends DeepClientCore
 			"name" => $name,
 		]);
 
-		var_dump($generated_query);
+		//var_dump($generated_query);
 
-		return $generated_query;
+		//return $generated_query;
 
-		/*$queryData = new Query($table);
-		$queryData->setArguments() setAttributes($returning);
+		$queryData = new Query($table);
+		$queryData->setVariables($generated_query);
+		$q = $this->graphQLClient->runQuery($queryData);
 
-		$data = $q->get("q0", []);
+		var_dump($q);
+
+		return $q;
+
+		/*$data = $q->get("q0", []);
 		unset($q["q0"]);
 
 		return array_merge($q, ["data" => $data]);*/

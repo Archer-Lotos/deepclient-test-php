@@ -3,7 +3,7 @@
 namespace DeepFoundation\DeepClient;
 class DeepClientQuery
 {
-	public static function generate_query_data(array $options): callable
+	public static function generate_query_data_old(array $options): callable
 	{
 		return function (string $alias, $index) use ($options) {
 			$defs = [];
@@ -49,7 +49,7 @@ class DeepClientQuery
 		];
 	}
 
-	public static function generate_query(array $options): array
+	public static function generate_query_old(array $options): array
 	{
 		$queries = $options["queries"] ?? [];
 		$operation = $options["operation"] ?? "query";
@@ -87,5 +87,47 @@ class DeepClientQuery
 
 	public static function gql(string $query_string)
 	{
+	}
+
+	function generateQuery(array $options): array {
+		$queries = $options['queries'] ?? [];
+		$operation = $options['operation'] ?? 'query';
+		$name = $options['name'] ?? 'QUERY';
+		$alias = $options['alias'] ?? 'q';
+
+		// log('generateQuery', ['name' => $name, 'alias' => $alias, 'queries' => $queries]);
+
+		$calledQueries = array_map(function($m, $i) use ($alias) {
+			if (is_callable($m)) {
+				return $m($alias, $i);
+			}
+			return $m;
+		}, $queries);
+
+		$defs = implode(',', array_map(function($m) {
+			return implode(',', $m['defs']);
+		}, $calledQueries));
+
+		$subQueries = array_map(function($m) {
+			return "{$m['resultAlias']}: {$m['queryName']}(" . implode(',', $m['args']) . ") { {$m['resultReturning']} }";
+		}, $calledQueries);
+
+		$queryString = "$operation $name ($defs) { " . implode('', $subQueries) . " }";
+		$variables = [];
+		foreach ($calledQueries as $action) {
+			foreach ($action['resultVariables'] as $v => $variable) {
+				$variables[$v] = $variable;
+			}
+		}
+
+		$result = [
+			'query' => $queryString,
+			'variables' => $variables,
+			'queryString' => $queryString,
+		];
+
+		// log('generateQueryResult', json_encode(['query' => $queryString, 'variables' => $variables], JSON_PRETTY_PRINT));
+
+		return $result;
 	}
 }
