@@ -159,16 +159,22 @@ class DeepClient extends DeepClientCore
 		}
 	}
 
-	public static function serializeQuery($exp, $env = 'links'): array
+	/**
+	 * @throws Exception
+	 */
+	public function serializeQuery($exp, $env = 'links'): array
 	{
 		$limit = $exp['limit'] ?? null;
 		$order_by = $exp['order_by'] ?? null;
 		$offset = $exp['offset'] ?? null;
 		$distinct_on = $exp['distinct_on'] ?? null;
 		$where = $exp;
-		unset($where['limit'], $where['order_by'], $where['offset'], $where['distinct_on']);
+		/*$where['limit'] =null;
+		$where['order_by'] =null;
+		$where['offset'] =null;
+		$where['distinct_on'] =null;*/
 
-		$result = ['where' => is_array($exp) ? (is_array($exp['id']) ? ['id' => ['_in' => $exp]] : serializeWhere($where, $env)) : ['id' => ['_eq' => $exp]]];
+		$result = ['where' => is_array($exp) ? (is_array($exp['id']) ? ['id' => ['_in' => $exp]] : $this->serialize_where($where, $env)) : ['id' => ['_eq' => $exp]]];
 
 		if ($limit) $result['limit'] = $limit;
 		if ($order_by) $result['order_by'] = $order_by;
@@ -190,18 +196,18 @@ class DeepClient extends DeepClientCore
 			];
 		}
 
-		$query = self::serializeQuery($exp, $options['table'] ?? 'links');
+		$query = $this->serializeQuery($exp, $options['table'] ?? 'links');
 		$table = $options['table'] ?? $this->options->table;
 		$returning = $options['returning'] ??
 			($table === 'links' ? $this->options->linksSelectReturning :
 				(in_array($table, ['strings', 'numbers', 'objects']) ? $this->options->valuesSelectReturning :
 					($table === 'selectors' ? $this->options->selectorsSelectReturning :
 						($table === 'files' ? $this->options->filesSelectReturning : 'id'))));
-		$variables = $options['variables'];
+		$variables = $options['variables']  ?: [];
 		$name = $options['name'] ?? $this->options->defaultSelectName;
 
 		try {
-			$q = $this->apolloClient->query(DeepClientQuery::generateQuery([
+			$generated_query = DeepClientQuery::generateQuery([
 				'queries' => [
 					DeepClientQuery::generateQueryData([
 						'tableName' => $table,
@@ -210,7 +216,13 @@ class DeepClient extends DeepClientCore
 					])
 				],
 				'name' => $name
-			]));
+			]);
+
+			var_dump($generated_query);
+
+			$query = new Query('links');
+			$query->setSelectionSet($generated_query);
+			$q = $this->graphQLClient->runQuery($query);
 
 			return array_merge($q, ['data' => $q['data']['q0']]);
 		} catch (Exception $e) {
