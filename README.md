@@ -4,4 +4,5 @@
 ```bash
 php8.1 vendor/bin/phpunit tests/GraphQLTest.php
 php8.1 vendor/bin/phpunit tests/DeepClientTest.php
+php8.1 vendor/bin/phpunit tests/DeepClientSOTest.php
 ```

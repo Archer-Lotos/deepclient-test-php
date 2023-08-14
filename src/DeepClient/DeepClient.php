@@ -219,6 +219,8 @@ class DeepClient extends DeepClientCore
 				'name' => $name
 			]);
 
+			var_dump($generated_query);
+
 			try {
 				$query = 'query MyQuery { links(limit: 1) { id }}';
 				$variables = [
