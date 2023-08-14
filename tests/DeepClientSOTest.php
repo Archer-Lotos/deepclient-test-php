@@ -18,11 +18,6 @@ class DeepClientSOTest extends DeepTestCase
 	{
 		$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
 		$dotenv->load();
-		$module = 'deep_client';
-		if (!extension_loaded($module)) {
-			dl($module . '.so');
-			//throw new Exception('extension not loaded');
-		}
 
 		$this->deepClient = make_deep_client(
 			$_ENV['BEARER_TOKEN'] ?: '',
