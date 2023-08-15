@@ -4,6 +4,10 @@ namespace Tests;
 
 use Exception;
 
+class DeepClient
+{
+
+}
 class DeepClientSOTest extends DeepTestCase
 {
 	/**
@@ -23,6 +27,8 @@ class DeepClientSOTest extends DeepTestCase
 			$_ENV['BEARER_TOKEN'] ?: '',
 			$_ENV['GQL_URN'] ?: 'http://localhost:3006/gql'
 		);
+		var_dump($this->deepClient);
+
 
 		var_dump($this->deepClient->select(100));
 	}
