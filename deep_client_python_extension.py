@@ -4,6 +4,8 @@ from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 '''
 
+from typing import Any, Optional, Union, Dict, List
+
 class DeepClient:
     def select(self, exp: Union[Dict, int, List[int]], options: Dict = {}) -> Dict:
         return "test"

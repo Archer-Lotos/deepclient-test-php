@@ -9,3 +9,4 @@
 .env.production
 *.cache
 vendor/
+__pycache__
